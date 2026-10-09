@@ -1,4 +1,4 @@
-module github.com/mdklapwijk/traefik-plugin-request-id
+module github.com/digital-h-gmbh/traefik-plugin-request-id
 
 go 1.21
 
