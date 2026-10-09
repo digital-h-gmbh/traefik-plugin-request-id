@@ -18,7 +18,9 @@ func TestDefaultOptions(t *testing.T) {
 	ctx := context.Background()
 
 	cfg := plugin.CreateConfig()
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -33,13 +35,17 @@ func TestDefaultOptions(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
 
+	resp := recorder.Result()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatal("response was not OK")
+	}
+
 	hdr := req.Header.Get(cfg.HeaderName)
 	t.Log("header value:", hdr)
 	if err := uuid.Validate(hdr); err != nil {
 		t.Fatalf("header %v contains invalid UUID: %v", cfg.HeaderName, err)
 	}
 
-	resp := recorder.Result()
 	respHdr := resp.Header.Get(cfg.HeaderName)
 	if respHdr != "" {
 		t.Fatalf("response header %v should have been unset", cfg.HeaderName)
@@ -52,7 +58,9 @@ func TestDisabledPlugin(t *testing.T) {
 	cfg := plugin.CreateConfig()
 	cfg.Enabled = false
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -66,6 +74,11 @@ func TestDisabledPlugin(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
+
+	resp := recorder.Result()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatal("response was not OK")
+	}
 
 	hdr := req.Header.Get(cfg.HeaderName)
 	if hdr != "" {
@@ -79,7 +92,9 @@ func TestCustomHeaderName(t *testing.T) {
 	cfg := plugin.CreateConfig()
 	cfg.HeaderName = "X-My-Custom-ID"
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -93,6 +108,11 @@ func TestCustomHeaderName(t *testing.T) {
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
+
+	resp := recorder.Result()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatal("response was not OK")
+	}
 
 	hdr := req.Header.Get(cfg.HeaderName)
 	t.Log("header value:", hdr)
@@ -107,7 +127,9 @@ func TestResponseHeader(t *testing.T) {
 	cfg := plugin.CreateConfig()
 	cfg.AddResponseHeader = true
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -129,6 +151,10 @@ func TestResponseHeader(t *testing.T) {
 	}
 
 	resp := recorder.Result()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatal("response was not OK")
+	}
+
 	respHdr := resp.Header.Get(cfg.HeaderName)
 	t.Log("response header value:", respHdr)
 	if err := uuid.Validate(respHdr); err != nil {
@@ -141,7 +167,9 @@ func TestExistingRequestHeaderIsPreserved(t *testing.T) {
 
 	cfg := plugin.CreateConfig()
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -158,6 +186,11 @@ func TestExistingRequestHeaderIsPreserved(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, req)
 
+	resp := recorder.Result()
+	if resp.StatusCode != http.StatusCreated {
+		t.Fatal("response was not OK")
+	}
+
 	hdr := req.Header.Get(cfg.HeaderName)
 	t.Log("header value:", hdr)
 	if hdr != "hello world" {
@@ -173,7 +206,9 @@ func TestErrorWithoutFailSafe(t *testing.T) {
 		return uuid.Nil, fmt.Errorf("no UUIDs for you today")
 	}
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -212,7 +247,9 @@ func TestErrorWithFailSafe(t *testing.T) {
 		return uuid.Nil, fmt.Errorf("no UUIDs for you today")
 	}
 
-	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})
+	next := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusCreated)
+	})
 
 	handler, err := plugin.New(ctx, next, cfg, "plugin-x-request-id")
 	if err != nil {
@@ -234,7 +271,7 @@ func TestErrorWithFailSafe(t *testing.T) {
 	}
 
 	t.Log("response body:", string(respBody))
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		t.Fatalf("response should have been successful")
 	}
 
