@@ -42,12 +42,15 @@ type Config struct {
 	// If true, the plugin will (try to) never prevent requests from succeeding, and instead only logs errors if
 	// something goes wrong.
 	FailSafe bool `json:"failSafe,omitempty"`
+
+	GenerateUUID func() (uuid.UUID, error) `json:"-"`
 }
 
 func CreateConfig() *Config {
 	return &Config{
-		HeaderName: defaultHeader,
-		Enabled:    defaultEnabled,
+		HeaderName:   defaultHeader,
+		Enabled:      defaultEnabled,
+		GenerateUUID: uuid.NewRandom,
 	}
 }
 
@@ -58,7 +61,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 			return
 		}
 
-		reqUUID, err := uuid.NewRandom()
+		reqUUID, err := config.GenerateUUID()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to generate UUID: %v\n", err.Error())
 
