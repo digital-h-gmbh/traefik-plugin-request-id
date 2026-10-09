@@ -30,20 +30,23 @@ func CreateConfig() *Config {
 
 func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if config.Enabled && request.Header.Get(config.HeaderName) == "" {
-			reqUUID, err := uuid.NewRandom()
-			if err != nil {
-				http.Error(writer, fmt.Sprintf("HTTP server plugin %v: Failed to generate UUID: %v",
-					name, err.Error()), http.StatusInternalServerError)
-				return
-			}
+		if !config.Enabled || request.Header.Get(config.HeaderName) != "" {
+			next.ServeHTTP(writer, request)
+			return
+		}
 
-			reqUUIDStr := reqUUID.String()
-			request.Header.Add(config.HeaderName, reqUUIDStr)
+		reqUUID, err := uuid.NewRandom()
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("HTTP server plugin %v: Failed to generate UUID: %v",
+				name, err.Error()), http.StatusInternalServerError)
+			return
+		}
 
-			if config.AddResponseHeader {
-				writer.Header().Add(config.HeaderName, reqUUIDStr)
-			}
+		reqUUIDStr := reqUUID.String()
+		request.Header.Add(config.HeaderName, reqUUIDStr)
+
+		if config.AddResponseHeader {
+			writer.Header().Add(config.HeaderName, reqUUIDStr)
 		}
 
 		next.ServeHTTP(writer, request)
