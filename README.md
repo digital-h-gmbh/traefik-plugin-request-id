@@ -1,12 +1,23 @@
 # X-Request-ID plugin for Traefik
 
-This plugin will add the X-Request-ID header with a generated UUIDv4 value to HTTP requests and (optionally) to
+This plugin will add the `X-Request-ID` header with a generated UUIDv4 value to HTTP requests and (optionally) to
 responses, allowing downstream services to identify requests.
+
+If the `X-Request-ID` header is already set for a request, it will not be overwritten.
 
 Based upon:
 - github.com/mdklapwijk/traefik-plugin-request-id
 - github.com/pipe01/plugin-requestid
 - github.com/gamblingpro/plugin-requestid
+
+## Plugin Configuration Options
+
+| Option | Description | Default |
+| ------ | ----------- | ------- |
+| `enabled` | Whether to enable this plugin | `true` |
+| `headerName` | Name of the header containing the UUID | `X-Request-ID` |
+| `addResponseHeader` | Whether to add the header to responses as well | `false` |
+| `failSafe` | Continue on errors (might lead to header not being set) | `false` |
 
 ## Disclaimer
 

@@ -35,8 +35,8 @@ const defaultHeader = "X-Request-ID"
 const defaultEnabled = true
 
 type Config struct {
-	HeaderName        string `json:"headerName,omitempty"`
 	Enabled           bool   `json:"enabled,omitempty"`
+	HeaderName        string `json:"headerName,omitempty"`
 	AddResponseHeader bool   `json:"addResponseHeader,omitempty"`
 
 	// If true, the plugin will (try to) never prevent requests from succeeding, and instead only logs errors if
