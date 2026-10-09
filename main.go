@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 )
@@ -19,6 +20,10 @@ type Config struct {
 	HeaderName        string `json:"headerName,omitempty"`
 	Enabled           bool   `json:"enabled,omitempty"`
 	AddResponseHeader bool   `json:"addResponseHeader,omitempty"`
+
+	// If true, the plugin will (try to) never prevent requests from succeeding, and instead only logs errors if
+	// something goes wrong.
+	FailSafe bool `json:"failSafe,omitempty"`
 }
 
 func CreateConfig() *Config {
@@ -37,8 +42,15 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 		reqUUID, err := uuid.NewRandom()
 		if err != nil {
-			http.Error(writer, fmt.Sprintf("HTTP server plugin %v: Failed to generate UUID: %v",
-				name, err.Error()), http.StatusInternalServerError)
+			fmt.Fprintf(os.Stderr, "Plugin %v: Failed to generate UUID: %v\n", name, err.Error())
+
+			if config.FailSafe {
+				next.ServeHTTP(writer, request)
+			} else {
+				http.Error(writer, fmt.Sprintf("Fatal error: HTTP server plugin %v: Failed to generate UUID: %v",
+					name, err.Error()), http.StatusInternalServerError)
+			}
+
 			return
 		}
 
