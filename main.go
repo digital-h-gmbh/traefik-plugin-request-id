@@ -63,13 +63,13 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 		reqUUID, err := config.GenerateUUID()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to generate UUID: %v\n", err.Error())
+			fmt.Fprintf(os.Stderr, "Failed to generate UUID: %v\n", err)
 
 			if config.FailSafe {
 				next.ServeHTTP(writer, request)
 			} else {
 				http.Error(writer, fmt.Sprintf("Fatal error: HTTP server plugin %v: Failed to generate UUID: %v",
-					name, err.Error()), http.StatusInternalServerError)
+					name, err), http.StatusInternalServerError)
 			}
 
 			return
