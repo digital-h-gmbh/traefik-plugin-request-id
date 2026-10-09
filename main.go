@@ -2,9 +2,15 @@ package traefik_plugin_request_id
 
 import (
 	"context"
-	"github.com/google/uuid"
+	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 )
+
+func init() {
+	uuid.EnableRandPool()
+}
 
 const defaultHeader = "X-Request-ID"
 const defaultEnabled = true
