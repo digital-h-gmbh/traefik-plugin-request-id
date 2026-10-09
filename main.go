@@ -28,13 +28,21 @@ func CreateConfig() *Config {
 	}
 }
 
-func New(ctx context.Context, next http.Handler, config *Config, _ string) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler, config *Config, name string) (http.Handler, error) {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if config.Enabled && request.Header.Get(config.HeaderName) == "" {
-			value := uuid.Must(uuid.NewRandom()).String()
-			request.Header.Add(config.HeaderName, value)
+			reqUUID, err := uuid.NewRandom()
+			if err != nil {
+				http.Error(writer, fmt.Sprintf("HTTP server plugin %v: Failed to generate UUID: %v",
+					name, err.Error()), http.StatusInternalServerError)
+				return
+			}
+
+			reqUUIDStr := reqUUID.String()
+			request.Header.Add(config.HeaderName, reqUUIDStr)
+
 			if config.AddResponseHeader {
-				writer.Header().Add(config.HeaderName, value)
+				writer.Header().Add(config.HeaderName, reqUUIDStr)
 			}
 		}
 
