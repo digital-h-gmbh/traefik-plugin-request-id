@@ -60,7 +60,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 		reqUUID, err := uuid.NewRandom()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Plugin %v: Failed to generate UUID: %v\n", name, err.Error())
+			fmt.Fprintf(os.Stderr, "Failed to generate UUID: %v\n", err.Error())
 
 			if config.FailSafe {
 				next.ServeHTTP(writer, request)
